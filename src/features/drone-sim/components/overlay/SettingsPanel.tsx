@@ -60,7 +60,7 @@ export function SettingsPanel({
   }
 
   return (
-    <div className="absolute right-4 top-16 max-h-[calc(100vh-6rem)] w-[360px] overflow-y-auto rounded-[1.6rem] border border-white/28 bg-[rgba(20,39,47,0.42)] px-4 py-4 text-xs text-white shadow-[0_18px_48px_rgba(8,18,22,0.22)] backdrop-blur-md">
+    <div className="absolute right-4 top-16 max-h-[calc(100vh-6rem)] w-90 overflow-y-auto rounded-[1.6rem] border border-white/28 bg-[rgba(20,39,47,0.42)] px-4 py-4 text-xs text-white shadow-[0_18px_48px_rgba(8,18,22,0.22)] backdrop-blur-md">
       <div className="mb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
