@@ -1,3 +1,7 @@
+import { useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
+
+import { signOut } from '../../../auth'
 import type { OverlayVisibility, SimulatorSettings } from '../../types'
 import { ToggleChip } from '../shared'
 
@@ -55,12 +59,29 @@ export function SettingsPanel({
   onResetSettings,
   onVisibilityToggle,
 }: SettingsPanelProps) {
+  const navigate = useNavigate()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  async function handleLogout() {
+    if (isLoggingOut) return
+
+    setIsLoggingOut(true)
+
+    try {
+      await signOut()
+      navigate({ to: '/login' })
+    } catch (error) {
+      console.error('Logout failed:', error)
+      setIsLoggingOut(false)
+    }
+  }
+
   if (!visibility.settings) {
     return null
   }
 
   return (
-    <div className="absolute right-4 top-16 max-h-[calc(100vh-6rem)] w-[360px] overflow-y-auto rounded-[1.6rem] border border-white/28 bg-[rgba(20,39,47,0.42)] px-4 py-4 text-xs text-white shadow-[0_18px_48px_rgba(8,18,22,0.22)] backdrop-blur-md">
+    <div className="absolute right-4 top-16 z-40 max-h-[calc(100vh-6rem)] w-[360px] overflow-y-auto rounded-[1.6rem] border border-white/28 bg-[rgba(20,39,47,0.42)] px-4 py-4 text-xs text-white shadow-[0_18px_48px_rgba(8,18,22,0.22)] backdrop-blur-md">
       <div className="mb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -248,6 +269,17 @@ export function SettingsPanel({
             onClick={() => onVisibilityToggle('promptTarget')}
           />
         </div>
+      </div>
+
+      <div className="mt-6 border-t border-white/14 pt-4">
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="pointer-events-auto w-full rounded-lg border border-red-400/40 bg-red-500/12 px-4 py-2.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/20 hover:border-red-400/60 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isLoggingOut ? 'Logging out...' : 'Logout'}
+        </button>
       </div>
     </div>
   )
