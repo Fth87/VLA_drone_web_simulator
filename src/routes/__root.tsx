@@ -2,9 +2,11 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  useNavigate,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { useEffect } from 'react'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
@@ -29,7 +31,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Drone VLA 3D Simulator',
       },
     ],
     links: [
@@ -40,7 +42,22 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     ],
   }),
   shellComponent: RootDocument,
+  notFoundComponent: NotFoundRedirect,
 })
+
+function NotFoundRedirect() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    navigate({ to: '/login', replace: true })
+  }, [navigate])
+
+  return (
+    <main className="flex min-h-screen items-center justify-center px-6 text-center">
+      <p className="text-sm text-[var(--sea-ink-soft)]">Go to login page...</p>
+    </main>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (

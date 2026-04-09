@@ -1,4 +1,5 @@
 import { Canvas } from '@react-three/fiber'
+import { VSMShadowMap } from 'three'
 import type {
   CameraMode,
   DroneAction,
@@ -25,7 +26,9 @@ export function SimulatorScene({
 }: SimulatorSceneProps) {
   return (
     <Canvas
-      shadows
+      shadows={{
+        type: VSMShadowMap,
+      }}
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: false }}
       camera={{ position: [0, 3, 14], fov: 58 }}

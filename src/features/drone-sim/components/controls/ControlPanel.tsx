@@ -22,7 +22,7 @@ export function ControlPanel({
   onReset,
 }: ControlPanelProps) {
   return (
-    <div className="absolute left-4 top-4 flex max-w-[360px] flex-col gap-4 rounded-[1.6rem] border border-white/28 bg-[rgba(20,39,47,0.42)] px-4 py-4 text-xs text-white shadow-[0_18px_48px_rgba(8,18,22,0.22)] backdrop-blur-md">
+    <div className="absolute left-4 top-4 flex max-w-90 flex-col gap-4 rounded-[1.6rem] border border-white/28 bg-[rgba(20,39,47,0.42)] px-4 py-4 text-xs text-white shadow-[0_18px_48px_rgba(8,18,22,0.22)] backdrop-blur-md">
       <div>
         <p className="m-0 text-[0.72rem] font-semibold tracking-[0.28em] text-white/78 uppercase">
           VLA Action
@@ -31,8 +31,7 @@ export function ControlPanel({
           Isi <code>vx</code>, <code>vy</code>, <code>vz</code>, dan{' '}
           <code>yaw</code> dalam rentang <code>-1</code> sampai <code>1</code>.
           Keyboard juga aktif: <code>W/S</code>, <code>Q/E</code>,{' '}
-          <code>←/→</code>, <code>A/D</code>. Prompt bisa dikirim lewat{' '}
-          <code>window.setDronePrompt(...)</code>.
+          <code>←/→</code>, <code>A/D</code>.
         </p>
       </div>
 
