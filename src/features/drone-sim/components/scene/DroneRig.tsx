@@ -1,7 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { MathUtils, PerspectiveCamera, Vector3, type Group } from 'three'
-import { TARGET_SIZE } from '../../constants'
 import type {
   CameraMode,
   DroneAction,
@@ -26,7 +25,7 @@ export function DroneRig({
   onTelemetry,
 }: DroneRigProps) {
   const droneRef = useRef<Group>(null)
-  const targetPosition = useMemo(() => new Vector3(9, TARGET_SIZE / 2, -8), [])
+  const targetPosition = useMemo(() => new Vector3(9, 0.6, -8), [])
   const direction = useMemo(() => new Vector3(), [])
   const lateral = useMemo(() => new Vector3(), [])
   const desiredCameraPosition = useMemo(() => new Vector3(), [])
@@ -137,25 +136,10 @@ export function DroneRig({
   })
 
   return (
-    <>
-      <group ref={droneRef} position={[0, 1.2, 10]} rotation={[0, Math.PI, 0]}>
-        <Suspense fallback={null}>
-          <DroneVisual visible={cameraMode !== 'fpv'} />
-        </Suspense>
-      </group>
-
-      <mesh
-        castShadow
-        receiveShadow
-        position={[targetPosition.x, targetPosition.y, targetPosition.z]}
-      >
-        <boxGeometry args={[TARGET_SIZE, TARGET_SIZE, TARGET_SIZE]} />
-        <meshStandardMaterial
-          color="#df2a2a"
-          emissive="#df2a2a"
-          emissiveIntensity={0.14}
-        />
-      </mesh>
-    </>
+    <group ref={droneRef} position={[0, 1.2, 10]} rotation={[0, Math.PI, 0]}>
+      <Suspense fallback={null}>
+        <DroneVisual visible={cameraMode !== 'fpv'} />
+      </Suspense>
+    </group>
   )
 }
