@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { VSMShadowMap } from 'three'
 import type {
@@ -15,6 +16,7 @@ type SimulatorSceneProps = {
   cameraMode: CameraMode
   settings: SimulatorSettings
   onTelemetry: (telemetry: Telemetry) => void
+  canvasRef?: React.RefObject<HTMLCanvasElement | null>
 }
 
 export function SimulatorScene({
@@ -23,14 +25,26 @@ export function SimulatorScene({
   cameraMode,
   settings,
   onTelemetry,
+  canvasRef,
 }: SimulatorSceneProps) {
+  const internalRef = useRef<HTMLCanvasElement | null>(null)
+
+  // Sync internal canvas ref to parent's ref
+  useEffect(() => {
+    if (canvasRef && internalRef.current) {
+      ;(canvasRef as React.MutableRefObject<HTMLCanvasElement | null>).current =
+        internalRef.current
+    }
+  })
+
   return (
     <Canvas
+      ref={internalRef}
       shadows={{
         type: VSMShadowMap,
       }}
       dpr={[1, 2]}
-      gl={{ antialias: true, alpha: false }}
+      gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true }}
       camera={{ position: [0, 3, 14], fov: 58 }}
     >
       <color attach="background" args={['#87c8f8']} />
