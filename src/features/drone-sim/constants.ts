@@ -15,6 +15,14 @@ export const DRONE_BOUNDS = {
   z: 28,
 }
 
+export const TARGET_SIZE = 1.2
+export const VLA_REQUEST_TIMEOUT_MS = 10_000
+export const VLA_INFERENCE_INTERVAL_MS = 100
+export const VLA_JPEG_QUALITY = 0.8
+export const VLA_IMAGE_SIZE = 224
+export const VLA_IMAGE_FILENAME = 'fpv_frame.jpg'
+export const VLA_HEALTH_STALE_TIME_MS = 30_000
+export const VLA_PROMPT_MAX_LENGTH = 160
 export const MAP_FOOTPRINT_SIZE = 128
 
 export const SCENE_BACKGROUND_COLOR = '#8ecdf7'

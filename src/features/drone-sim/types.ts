@@ -44,6 +44,34 @@ export type OverlayVisibility = {
   settings: boolean
 }
 
+export type InferenceStatus = 'idle' | 'connecting' | 'running' | 'error'
+
+export type InferenceResponse = {
+  action: DroneAction
+  timestamp: string
+}
+
+export type PredictVlaActionInput = {
+  image: Blob
+  languageInstruction: string
+  signal?: AbortSignal
+}
+
+export type InferenceMetrics = {
+  captureMs: number | null
+  requestMs: number | null
+  totalMs: number | null
+  payloadBytes: number | null
+}
+
+export type InferenceState = {
+  status: InferenceStatus
+  latencyMs: number | null
+  error: string | null
+  lastTimestamp: string | null
+  metrics: InferenceMetrics
+}
+
 declare global {
   interface Window {
     setDroneAction?: (action: Partial<DroneAction>) => void
