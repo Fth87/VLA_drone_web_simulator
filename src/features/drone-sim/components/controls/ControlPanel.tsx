@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import type { CameraMode, DroneAction, InferenceState } from '../../types'
 import { ActionSlider } from './ActionSlider'
 import { ViewModeButton } from './ViewModeButton'
@@ -13,9 +14,11 @@ type ControlPanelProps = {
   onPromptChange: (prompt: string) => void
   onCameraModeChange: (mode: CameraMode) => void
   onReset: () => void
-  onStartInference: () => void
   onStopInference: () => void
 }
+
+const START_PROMPT_TOAST_MESSAGE =
+  'Submit prompt belum aktif (berat + bayar mahal wak kalo backendnya jalan terus di server)'
 
 function InferenceStatusBadge({ state }: { state: InferenceState }) {
   if (state.status === 'idle') return null
@@ -23,13 +26,11 @@ function InferenceStatusBadge({ state }: { state: InferenceState }) {
   const statusConfig = {
     connecting: {
       label: 'Connecting…',
-      className:
-        'border-amber-400/40 bg-amber-400/15 text-amber-300',
+      className: 'border-amber-400/40 bg-amber-400/15 text-amber-300',
     },
     running: {
       label: `Running${state.latencyMs != null ? ` · ${state.latencyMs}ms` : ''}`,
-      className:
-        'border-emerald-400/40 bg-emerald-400/15 text-emerald-300',
+      className: 'border-emerald-400/40 bg-emerald-400/15 text-emerald-300',
     },
     error: {
       label: 'Error',
@@ -59,7 +60,9 @@ function InferenceStatusBadge({ state }: { state: InferenceState }) {
       ) : null}
       {state.status === 'running' && state.metrics.totalMs != null ? (
         <p className="m-0 text-[10px] leading-snug text-white/65">
-          cap {state.metrics.captureMs ?? '-'}ms | req {state.metrics.requestMs ?? '-'}ms | total {state.metrics.totalMs}ms | payload{' '}
+          cap {state.metrics.captureMs ?? '-'}ms | req{' '}
+          {state.metrics.requestMs ?? '-'}ms | total {state.metrics.totalMs}ms |
+          payload{' '}
           {state.metrics.payloadBytes != null
             ? `${(state.metrics.payloadBytes / 1024).toFixed(1)}KB`
             : '-'}
@@ -80,11 +83,14 @@ export function ControlPanel({
   onPromptChange,
   onCameraModeChange,
   onReset,
-  onStartInference,
   onStopInference,
 }: ControlPanelProps) {
   const canStartInference =
-    prompt.trim().length > 0 && !isInferenceRunning && inferenceState.status !== 'connecting'
+    !isInferenceRunning && inferenceState.status !== 'connecting'
+
+  const handleStartInference = () => {
+    toast.info(START_PROMPT_TOAST_MESSAGE)
+  }
 
   return (
     <div className="absolute left-4 top-4 flex max-w-90 flex-col gap-4 rounded-[1.6rem] border border-white/28 bg-[rgba(20,39,47,0.42)] px-4 py-4 text-xs text-white shadow-[0_18px_48px_rgba(8,18,22,0.22)] backdrop-blur-md">
@@ -123,9 +129,7 @@ export function ControlPanel({
           label="Yaw"
           value={action.yaw}
           disabled={isInferenceRunning}
-          onChange={(yaw) =>
-            onActionChange((current) => ({ ...current, yaw }))
-          }
+          onChange={(yaw) => onActionChange((current) => ({ ...current, yaw }))}
         />
       </div>
 
@@ -143,7 +147,6 @@ export function ControlPanel({
         />
       </label>
 
-      {/* Inference Controls */}
       <div className="grid gap-2.5">
         <p className="m-0 text-[0.72rem] font-semibold tracking-[0.28em] text-white/78 uppercase">
           VLA Inference
@@ -168,7 +171,7 @@ export function ControlPanel({
         ) : (
           <button
             type="button"
-            onClick={onStartInference}
+            onClick={handleStartInference}
             disabled={!canStartInference}
             className="pointer-events-auto flex items-center justify-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/20 px-3 py-2.5 text-[11px] font-semibold tracking-[0.18em] text-emerald-200 uppercase transition hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-emerald-500/20"
           >

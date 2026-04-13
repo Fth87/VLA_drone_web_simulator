@@ -1,6 +1,4 @@
-import { Link } from '@tanstack/react-router'
-
-import { AUTH_COPY, AUTH_ROUTES } from '../constants'
+import { AUTH_COPY } from '../constants'
 import { useLoginForm } from '../hooks/useLoginForm'
 import { AuthShell } from './AuthShell'
 
@@ -12,17 +10,6 @@ export function LoginForm() {
     <AuthShell
       title={AUTH_COPY.loginTitle}
       description={AUTH_COPY.loginDescription}
-      footer={
-        <p className="text-sm text-[var(--sea-ink-soft)]">
-          {AUTH_COPY.loginFooter}{' '}
-          <Link
-            to={AUTH_ROUTES.register}
-            className="font-semibold text-[var(--lagoon-deep)] hover:underline"
-          >
-            {AUTH_COPY.loginLink}
-          </Link>
-        </p>
-      }
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
         <label className="block text-sm">

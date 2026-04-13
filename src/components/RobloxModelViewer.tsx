@@ -50,7 +50,9 @@ function loadStoredSimulatorSettings(): SimulatorSettings {
     return DEFAULT_SIMULATOR_SETTINGS
   }
 
-  const rawSettings = window.localStorage.getItem(SIMULATOR_SETTINGS_STORAGE_KEY)
+  const rawSettings = window.localStorage.getItem(
+    SIMULATOR_SETTINGS_STORAGE_KEY,
+  )
 
   if (!rawSettings) {
     return DEFAULT_SIMULATOR_SETTINGS
@@ -180,7 +182,6 @@ export default function RobloxModelViewer() {
           onActionChange={setModelAction}
           onPromptChange={setPrompt}
           onCameraModeChange={setCameraMode}
-          onStartInference={() => void inference.start()}
           onStopInference={inference.stop}
           onReset={() => {
             inference.stop()
