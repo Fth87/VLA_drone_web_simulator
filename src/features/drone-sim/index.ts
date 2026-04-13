@@ -20,7 +20,6 @@ export {
   validateLanguageInstruction,
 } from './schema'
 export { useDroneActionBridge } from './hooks/useDroneActionBridge'
-export { useGroundTexture } from './hooks/useGroundTexture'
 export { useVlaInference } from './hooks/useVlaInference'
 export {
   checkHealth,
