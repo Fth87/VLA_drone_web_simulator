@@ -30,6 +30,51 @@ Build production:
 pnpm run build
 ```
 
+## Deploy ke Netlify
+
+Project ini sudah disiapkan untuk Netlify dengan plugin resmi TanStack Start:
+
+- `@netlify/vite-plugin-tanstack-start` di `vite.config.ts`
+- konfigurasi build di `netlify.toml`
+
+### Opsi 1: Deploy via Dashboard Netlify
+
+1. Push repository ke Git provider (GitHub/GitLab/Bitbucket).
+2. Di Netlify, pilih **Add new site** -> **Import an existing project**.
+3. Pilih repository ini.
+4. Pastikan Build settings:
+
+- Build command: `pnpm build`
+- Publish directory: kosongkan/default (ditangani plugin Netlify + TanStack Start)
+
+5. Deploy.
+
+### Opsi 2: Deploy via Netlify CLI
+
+```bash
+pnpm dlx netlify-cli deploy --build
+pnpm dlx netlify-cli deploy --build --prod
+```
+
+### Verifikasi Lokal Sebelum Deploy
+
+```bash
+pnpm build
+```
+
+Build sukses akan menghasilkan output server Netlify di:
+
+- `.netlify/v1/functions/server.mjs`
+
+## Best Practices (Three.js + TanStack Start di Netlify)
+
+- Pertahankan plugin resmi `@netlify/vite-plugin-tanstack-start` agar output SSR/handler Netlify tetap kompatibel.
+- Simpan secret/API key di Netlify Environment Variables, jangan di-hardcode ke source code.
+- Monitor ukuran bundle Three.js. Jika chunk utama makin besar, split scene/fitur berat dengan `lazy()` atau dynamic `import()` per route/fitur.
+- Kompres aset 3D (`.glb`) sebelum commit (contoh: Draco/mesh optimization) untuk menurunkan waktu load awal.
+- Simpan file model/texture di `public/` dengan nama path yang konsisten (hindari perubahan path saat runtime).
+- Jalankan `pnpm build` di lokal sebelum merge untuk memastikan output SSR + client tetap valid.
+
 ## Fitur Utama
 
 - Arena fullscreen dengan ground tiled dan target kotak merah
