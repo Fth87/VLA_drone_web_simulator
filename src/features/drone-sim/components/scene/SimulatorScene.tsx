@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { VSMShadowMap } from 'three'
 import {
@@ -58,7 +58,10 @@ export function SimulatorScene({
     >
       <SceneEnvironment />
       <color attach="background" args={[SCENE_BACKGROUND_COLOR]} />
-      <fog attach="fog" args={[SCENE_FOG_COLOR, SCENE_FOG_NEAR, SCENE_FOG_FAR]} />
+      <fog
+        attach="fog"
+        args={[SCENE_FOG_COLOR, SCENE_FOG_NEAR, SCENE_FOG_FAR]}
+      />
       <hemisphereLight
         intensity={HEMISPHERE_LIGHT.intensity}
         color={HEMISPHERE_LIGHT.skyColor}
