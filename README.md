@@ -9,6 +9,21 @@ pnpm install
 pnpm dev
 ```
 
+## Environment Variables
+
+### Supabase Setup
+
+1. Create a project at [supabase.com](https://supabase.com) if you haven't already
+2. Go to **Settings → API** in your Supabase project dashboard
+3. Copy the keys and add them to `.env`:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+```
+
+**Important:** The `VITE_SUPABASE_ANON_KEY` is your public/anonymous key — it's safe to expose in the browser. Never put the service role key in the client bundle.
+
 Build production:
 
 ```bash

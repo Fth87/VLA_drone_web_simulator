@@ -1,18 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
+  ControlPanel,
   DEFAULT_OVERLAY_VISIBILITY,
   DEFAULT_SIMULATOR_SETTINGS,
   INITIAL_ACTION,
   INITIAL_TELEMETRY,
-} from '../features/drone-sim/constants'
-import {
-  ControlPanel,
   OverlayToolbar,
   SettingsPanel,
   SimulatorScene,
   StatusHud,
-} from '../features/drone-sim/components'
-import { useDroneActionBridge } from '../features/drone-sim/hooks/useDroneActionBridge'
+  useDroneActionBridge,
+  useVlaInference,
+} from '../features/drone-sim'
 import type {
   CameraMode,
   OverlayVisibility,
@@ -82,6 +81,7 @@ export default function RobloxModelViewer() {
   const [cameraMode, setCameraMode] = useState<CameraMode>('third')
   const { action, setModelAction, setKeyboardAction } =
     useDroneActionBridge(setCameraMode)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [resetSignal, setResetSignal] = useState(0)
   const [telemetry, setTelemetry] = useState(INITIAL_TELEMETRY)
   const [prompt, setPrompt] = useState('')
@@ -89,6 +89,12 @@ export default function RobloxModelViewer() {
     loadStoredSimulatorSettings,
   )
   const [visibility, setVisibility] = useState(DEFAULT_OVERLAY_VISIBILITY)
+  const inference = useVlaInference({
+    canvasRef,
+    prompt,
+    onAction: setModelAction,
+    onForceFpv: () => setCameraMode('fpv'),
+  })
 
   useEffect(() => {
     setMounted(true)
@@ -115,9 +121,9 @@ export default function RobloxModelViewer() {
     return <ViewerFallback />
   }
 
-  const handleSettingChange = <K extends keyof SimulatorSettings>(
-    key: K,
-    value: SimulatorSettings[K],
+  const handleSettingChange = <TKey extends keyof SimulatorSettings>(
+    key: TKey,
+    value: SimulatorSettings[TKey],
   ) => {
     setSettings((current) => {
       const nextSettings = {
@@ -158,6 +164,7 @@ export default function RobloxModelViewer() {
         cameraMode={cameraMode}
         settings={settings}
         onTelemetry={setTelemetry}
+        canvasRef={canvasRef}
       />
 
       <OverlayToolbar visibility={visibility} onToggle={toggleVisibility} />
@@ -167,10 +174,16 @@ export default function RobloxModelViewer() {
           action={action}
           cameraMode={cameraMode}
           prompt={prompt}
+          inferenceState={inference.state}
+          isInferenceRunning={inference.isRunning}
+          latestPayloadUrl={inference.latestPayloadUrl}
           onActionChange={setModelAction}
           onPromptChange={setPrompt}
           onCameraModeChange={setCameraMode}
+          onStartInference={() => void inference.start()}
+          onStopInference={inference.stop}
           onReset={() => {
+            inference.stop()
             setModelAction(INITIAL_ACTION)
             setKeyboardAction(INITIAL_ACTION)
             setResetSignal((current) => current + 1)
