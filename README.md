@@ -1,101 +1,197 @@
 # Drone VLA Simulator
 
-Simulator drone sederhana berbasis TanStack Start, React Three Fiber, dan Three.js. Route home (`/`) menampilkan simulator fullscreen untuk menguji kontrol drone manual maupun output aksi dari model VLA.
+Simulator drone 3D dengan  **TanStack Start**, **React Three Fiber**, dan **Three.js**. Aplikasi ini menampilkan simulator fullscreen dengan integrasi model VLA untuk autonomous flight control testing dan manual drone operation.
 
-## Menjalankan Project
+## Prerequisites
+
+Untuk menjalankan project ini, pastikan sudah install:
+
+- **Node.js** ≥ 18.x
+- **pnpm** ≥ 8.x ([install pnpm](https://pnpm.io/installation))
+
+## Setup
+
+### 1. Backend VLA API (Required)
+
+Simulator memerlukan backend VLA API untuk inference. Clone dan setup backend terlebih dahulu:
+
+```bash
+git clone https://github.com/Fth87/VLA_drone_backend_web_simulator-.git
+cd VLA_drone_backend_web_simulator-
+# lalu Ikuti instruksi di README backend untuk setup environment dan menjalankan API
+```
+
+Backend akan berjalan di `http://localhost:8000`. Pastikan endpoint ini accessible sebelum menjalankan simulator.
+
+### 2. Environment Variables
+
+Copy `.env.example` ke `.env` lalu sesuaikan nilai:
+
+```bash
+cp .env.example .env
+```
+
+Isi `.env` dengan:
+
+```bash
+# Supabase (opsional untuk auth features)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+
+# VLA API Backend (REQUIRED)
+VITE_VLA_API_URL=http://localhost:8000
+```
+
+**Notes:**
+
+- `VITE_SUPABASE_ANON_KEY` adalah public key — safe untuk expose di browser
+- Jangan hardcode service role key di client bundle
+- `VITE_VLA_API_URL` harus pointing ke backend API yang sudah dijalankan
+
+### 3. Frontend Setup
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-## Environment Variables
+Frontend akan berjalan di `http://localhost:5173`. Buka di browser untuk mulai testing simulator.
 
-### Supabase Setup
+## Build & Deploy
 
-1. Create a project at [supabase.com](https://supabase.com) if you haven't already
-2. Go to **Settings → API** in your Supabase project dashboard
-3. Copy the keys and add them to `.env`:
+### Production Build
 
-```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-public-key
-```
-
-**Important:** The `VITE_SUPABASE_ANON_KEY` is your public/anonymous key — it's safe to expose in the browser. Never put the service role key in the client bundle.
-
-Build production:
+Verify build lokal terlebih dahulu sebelum deploy:
 
 ```bash
 pnpm run build
 ```
 
-## Deploy ke Netlify
+Output:
 
-Project ini sudah disiapkan untuk Netlify dengan plugin resmi TanStack Start:
+- Client bundle: `dist/`
+- Server handler (Netlify): `.netlify/v1/functions/server.mjs`
 
-- `@netlify/vite-plugin-tanstack-start` di `vite.config.ts`
-- konfigurasi build di `netlify.toml`
+### Deploy ke Netlify
 
-### Opsi 1: Deploy via Dashboard Netlify
+Project ini siap deploy ke Netlify dengan plugin resmi TanStack Start (`@netlify/vite-plugin-tanstack-start`).
 
-1. Push repository ke Git provider (GitHub/GitLab/Bitbucket).
-2. Di Netlify, pilih **Add new site** -> **Import an existing project**.
-3. Pilih repository ini.
-4. Pastikan Build settings:
+**Via Dashboard Netlify:**
 
-- Build command: `pnpm build`
-- Publish directory: kosongkan/default (ditangani plugin Netlify + TanStack Start)
+1. Push ke Git provider (GitHub/GitLab/Bitbucket)
+2. Di Netlify → **Add new site** → **Import an existing project**
+3. Pilih repository ini
+4. Build settings sudah auto-detected, tinggal review:
+   - Build command: `pnpm build`
+   - Publish directory: kosongkan (ditangani oleh plugin)
+5. **Deploy**
 
-5. Deploy.
-
-### Opsi 2: Deploy via Netlify CLI
-
-```bash
-pnpm dlx netlify-cli deploy --build
-pnpm dlx netlify-cli deploy --build --prod
-```
-
-### Verifikasi Lokal Sebelum Deploy
+**Via CLI:**
 
 ```bash
-pnpm build
+pnpm dlx netlify-cli deploy --build          # Preview
+pnpm dlx netlify-cli deploy --build --prod   # Production
 ```
 
-Build sukses akan menghasilkan output server Netlify di:
+**Environment Variables di Netlify:**
 
-- `.netlify/v1/functions/server.mjs`
+Set di Netlify dashboard under **Site Settings → Environment**:
 
-## Best Practices (Three.js + TanStack Start di Netlify)
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+VITE_VLA_API_URL=https://your-backend-api-url.com
+```
 
-- Pertahankan plugin resmi `@netlify/vite-plugin-tanstack-start` agar output SSR/handler Netlify tetap kompatibel.
-- Simpan secret/API key di Netlify Environment Variables, jangan di-hardcode ke source code.
-- Monitor ukuran bundle Three.js. Jika chunk utama makin besar, split scene/fitur berat dengan `lazy()` atau dynamic `import()` per route/fitur.
-- Kompres aset 3D (`.glb`) sebelum commit (contoh: Draco/mesh optimization) untuk menurunkan waktu load awal.
-- Simpan file model/texture di `public/` dengan nama path yang konsisten (hindari perubahan path saat runtime).
-- Jalankan `pnpm build` di lokal sebelum merge untuk memastikan output SSR + client tetap valid.
+Pastikan backend API URL accessible dari public internet jika deploy ke Netlify.
+
+## Production Best Practices
+
+- **VLA API:** Pastikan backend API selalu running dan accessible. Monitor latency — overhead inference > 1s akan terasa janky di simulator.
+- **Bundle size:** Three.js bisa berat (~1.2MB). Jika perlu optimize, split scene/komponen berat dengan lazy loading per route.
+- **3D Assets:** Compress `.glb` models (Draco encoding, mesh optimization) sebelum commit. Simpan di `public/` dengan path konsisten.
+- **Secrets:** Never hardcode API keys. Gunakan environment variables di build time atau runtime config.
+- **Testing:** Jalankan `pnpm build` lokal sebelum merge untuk verifikasi output SSR + client bundle.
+- **SSL/HTTPS:** Backend API harus HTTPS di production untuk CORS sama frontend di domain berbeda.
+- **Server Timeout:** Set `VLA_REQUEST_TIMEOUT_MS` (default 10s) sesuai kebutuhan inference model.
+
+## Troubleshooting
+
+**"API unreachable — is the backend running?"**
+
+- Pastikan backend API sudah dijalankan di `VITE_VLA_API_URL`
+- Cek endpoint `/health` dari browser: `curl http://localhost:8000/health`
+- Jika production, pastikan firewall/CORS allow request dari domain frontend
+
+**Drone tidak respond terhadap keyboard input**
+
+- Klik di area canvas simulator dulu untuk focus
+- Cek console untuk error messages
+
+**Model drone tidak visible**
+
+- Pastikan file di `public/drone model/drone_model.glb` ada
+- Cek browser console untuk loading errors
+- Try refresh atau hard refresh (Ctrl+Shift+R)
+
+**Inference berjalan tapi action tidak update drone**
+
+- Cek format prompt di control panel (minimal 1 karakter)
+- Baca error di inference status badge
+- Pastikan backend mengembalikan `first_action` array dengan 4 values
+- Monitor network tab untuk response payload
 
 ## Fitur Utama
 
-- Arena fullscreen dengan ground tiled dan target kotak merah
-- Model drone dari `public/drone model/drone_model.glb`
-- Mode kamera:
-  - `1` = FPV
-  - `3` = 3rd person
+- Arena fullscreen dengan ground tiled dan target merah
+- Model drone GLB dari `public/drone model/drone_model.glb`
+- **Mode Kamera:**
+  - `1` = FPV (first-person view)
+  - `3` = 3rd person follow
   - `4` = fixed corner view
-- Kontrol keyboard:
-  - `W / S` = maju / mundur
-  - `Q / E` = turun / naik
-  - `ArrowLeft / ArrowRight` = strafe kiri / kanan
-  - `A / D` = yaw kiri / kanan
-- Kontrol aksi VLA dengan `vx`, `vy`, `vz`, `yaw`
-- Prompt input lokal dan bridge prompt global
+- **Keyboard Controls:**
+  - `W/S` = maju/mundur (vz)
+  - `Q/E` = naik/turun (vy)
+  - `←/→` atau `A/D` = strafe kiri/kanan (vx) / yaw (A/D)
+- **Action Sliders:** Manual kontrol 4-axis (vx, vy, vz, yaw) dengan range -1 sampai 1
+- **VLA Integration:** Submit natural language prompt → backend infer → drone execute action
+- **Live Telemetry:** Posisi, heading, aksi current, status inference di HUD
+- **Payload Preview:** Download capture frame terakhir yang dikirim ke VLA API
 
-## Integrasi Dengan Model VLA
+## VLA Integration Details
 
-Simulator mengekspos bridge global sederhana:
+### API Spec
+
+Backend endpoint: `POST /infer`
+
+**Request (multipart/form-data):**
+
+```
+image_input: <224x224 JPEG blob>
+task_input: <string> "go to the red box"
+state_input: <string> optional drone state context
+```
+
+**Response (JSON):**
+
+```json
+{
+  "success": true,
+  "first_action": [0.2, 0.1, 0.8, -0.3],
+  "trajectory": [[...], [...]] or null,
+  "inference_time_ms": 245,
+  "error": null
+}
+```
+
+`first_action` array format: `[vx, vy, vz, yaw]` dengan range -1..1
+
+### Global Bridge (Optional)
+
+Simulator juga support manual action injection via browser console:
 
 ```js
+// Set drone action manually
 window.setDroneAction({
   vx: 0.0,
   vy: 0.1,
@@ -103,72 +199,69 @@ window.setDroneAction({
   yaw: -0.2,
 })
 
-window.setDronePrompt('go to the red box and hover')
+// Update inference prompt
+window.setDronePrompt('hover above the target')
 ```
 
-Semua nilai aksi di-clamp ke rentang `-1..1`.
+Semua nilai di-clamp automatic ke range -1..1.
 
-## Tuning Gerakan
+## Customization & Tuning
 
-Gain gerakan dipusatkan di:
+### Movement Gains
 
-[src/features/drone-sim/constants.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/constants.ts)
+Adjust drone responsiveness di `src/features/drone-sim/constants.ts`:
 
 ```ts
 export const ACTION_GAIN = {
-  vx: 1.8,
-  vy: 1.4,
-  vz: 2.1,
-  yaw: 0.9,
+  vx: 1.8, // lateral speed
+  vy: 1.4, // vertical speed
+  vz: 2.1, // forward speed
+  yaw: 0.9, // rotation speed
 }
 ```
 
-Arti parameter:
+Increase gain untuk lebih responsive, decrease untuk lebih smooth.
 
-- `vx`: kecepatan strafe kiri/kanan
-- `vy`: kecepatan naik/turun
-- `vz`: kecepatan maju/mundur
-- `yaw`: kecepatan rotasi yaw
+### Arena Bounds
 
-## Struktur Kode
+Set drone flight boundaries di `src/features/drone-sim/constants.ts`:
 
-Feature simulator dipisah ke folder:
+```ts
+export const DRONE_BOUNDS = {
+  x: 28, // lateral limit
+  yMin: 0.35, // floor
+  yMax: 12, // ceiling
+  z: 28, // depth limit
+}
+```
 
-- [src/features/drone-sim/types.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/types.ts)
-  - Tipe domain simulator dan bridge global
-- [src/features/drone-sim/constants.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/constants.ts)
-  - Konstanta domain seperti bounds, gain, dan initial state
-- [src/features/drone-sim/utils.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/utils.ts)
-  - Helper umum seperti clamp dan normalisasi heading
-- [src/features/drone-sim/hooks/useDroneActionBridge.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/hooks/useDroneActionBridge.ts)
-  - Menggabungkan input keyboard dan model VLA ke action final
-- [src/features/drone-sim/hooks/useGroundTexture.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/hooks/useGroundTexture.ts)
-  - Texture procedural untuk ground
-- [src/features/drone-sim/components/Ground.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/Ground.tsx)
-  - Mesh ground arena
-- [src/features/drone-sim/components/DroneVisual.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/DroneVisual.tsx)
-  - Render dan normalisasi model drone
-- [src/features/drone-sim/components/DroneRig.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/DroneRig.tsx)
-  - Movement, camera follow, reset, target, dan telemetry
-- [src/features/drone-sim/components/SimulatorScene.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/SimulatorScene.tsx)
-  - Scene Three.js / R3F utama
-- [src/features/drone-sim/components/ActionSlider.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/ActionSlider.tsx)
-  - Slider UI generik untuk aksi
-- [src/features/drone-sim/components/ViewModeButton.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/ViewModeButton.tsx)
-  - Tombol mode kamera
-- [src/features/drone-sim/components/ControlPanel.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/ControlPanel.tsx)
-  - Panel input aksi, prompt, kamera, dan reset
-- [src/features/drone-sim/components/StatusHud.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/StatusHud.tsx)
-  - HUD bawah untuk posisi, heading, action, dan status prompt
-- [src/components/RobloxModelViewer.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/components/RobloxModelViewer.tsx)
-  - Container tipis yang merangkai feature simulator
+### Camera Presets
 
-## Prinsip Refactor
+Adjust camera distance, height, FOV di Control Panel **Settings** → **Advanced** atau di constants.
 
-Refactor ini menjaga:
+## Project Structure
 
-- Tampilan tetap sama
-- Perilaku simulator tetap sama
-- Separation of concern lebih jelas
-- Domain logic dipisah dari presentational UI
-- Tidak overengineering: belum menambah state manager atau abstraction yang belum dibutuhkan
+Feature simulator di `src/features/drone-sim/`:
+
+**Core:**
+
+- `types.ts` — Domain types (DroneAction, InferenceState, etc.)
+- `constants.ts` — Tunable params (gains, bounds, initial state)
+- `schema.ts` — Validation (prompt sanitization)
+- `utils/` — Helpers (clamp, frame capture, state builders)
+- `services/vla-api.ts` — Backend API client (health check, inference)
+
+**Hooks:**
+
+- `useDroneActionBridge.ts` — Merge keyboard + VLA model actions → final action
+- `useVlaInference.ts` — Inference loop, health check, payload preview management
+
+**UI Components:**
+
+- `components/controls/` — Action sliders, camera mode button, control panel
+- `components/overlay/` — Status HUD, settings panel, toolbar toggle
+- `components/scene/` — Three.js scene, drone rig, environment setup
+
+**Entry:**
+
+- `src/components/RobloxModelViewer.tsx` — Main container, state orchestration
