@@ -54,7 +54,16 @@ export type InferenceResponse = {
 export type PredictVlaActionInput = {
   image: Blob
   languageInstruction: string
+  stateInput?: string
   signal?: AbortSignal
+}
+
+export type InferApiResponse = {
+  success: boolean
+  first_action: number[] | null
+  trajectory: number[][] | null
+  inference_time_ms: number | null
+  error: string | null
 }
 
 export type InferenceMetrics = {
