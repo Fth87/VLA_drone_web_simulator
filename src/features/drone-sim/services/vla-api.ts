@@ -4,7 +4,11 @@ import {
   VLA_IMAGE_FILENAME,
   VLA_REQUEST_TIMEOUT_MS,
 } from '../constants'
-import type { InferenceResponse, PredictVlaActionInput } from '../types'
+import type {
+  InferApiResponse,
+  InferenceResponse,
+  PredictVlaActionInput,
+} from '../types'
 
 const BASE_URL =
   import.meta.env.VITE_VLA_API_URL?.replace(/\/+$/, '') ||
@@ -38,10 +42,11 @@ export async function predict(
   input: PredictVlaActionInput,
 ): Promise<InferenceResponse> {
   const formData = new FormData()
-  formData.append('image', input.image, VLA_IMAGE_FILENAME)
-  formData.append('language_instruction', input.languageInstruction)
+  formData.append('image_input', input.image, VLA_IMAGE_FILENAME)
+  formData.append('task_input', input.languageInstruction)
+  formData.append('state_input', input.stateInput ?? '')
 
-  const response = await fetch(`${BASE_URL}/predict`, {
+  const response = await fetch(`${BASE_URL}/infer`, {
     method: 'POST',
     body: formData,
     signal: input.signal ?? AbortSignal.timeout(VLA_REQUEST_TIMEOUT_MS),
@@ -52,7 +57,30 @@ export async function predict(
     throw new Error(`Predict failed (${response.status}): ${errorText}`)
   }
 
-  return response.json() as Promise<InferenceResponse>
+  const payload = (await response.json()) as InferApiResponse
+
+  if (!payload.success) {
+    throw new Error(payload.error || 'Inference failed')
+  }
+
+  if (!Array.isArray(payload.first_action) || payload.first_action.length < 4) {
+    throw new Error('Inference response missing first_action with 4 values')
+  }
+
+  const [vxRaw, vyRaw, vzRaw, yawRaw] = payload.first_action
+  const vx = Number(vxRaw)
+  const vy = Number(vyRaw)
+  const vz = Number(vzRaw)
+  const yaw = Number(yawRaw)
+
+  if (![vx, vy, vz, yaw].every(Number.isFinite)) {
+    throw new Error('Inference response contains non-numeric action values')
+  }
+
+  return {
+    action: { vx, vy, vz, yaw },
+    timestamp: new Date().toISOString(),
+  }
 }
 
 export function vlaHealthQueryOptions() {

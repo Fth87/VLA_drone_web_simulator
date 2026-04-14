@@ -67,9 +67,9 @@ function loadStoredSimulatorSettings(): SimulatorSettings {
 
 function ViewerFallback() {
   return (
-    <div className="viewer-shell flex h-full min-h-screen items-center justify-center px-6 py-10 text-center text-sm text-[var(--sea-ink-soft)]">
+    <div className="viewer-shell flex h-full min-h-screen items-center justify-center px-6 py-10 text-center text-sm text-(--sea-ink-soft)">
       <div>
-        <p className="mb-2 text-xs font-semibold tracking-[0.24em] text-[var(--kicker)] uppercase">
+        <p className="mb-2 text-xs font-semibold tracking-[0.24em] text-(--kicker) uppercase">
           Drone Simulator
         </p>
         <p className="m-0">Menyiapkan arena uji dan drone model...</p>
@@ -182,6 +182,7 @@ export default function RobloxModelViewer() {
           onActionChange={setModelAction}
           onPromptChange={setPrompt}
           onCameraModeChange={setCameraMode}
+          onStartInference={inference.start}
           onStopInference={inference.stop}
           onReset={() => {
             inference.stop()

@@ -1,174 +1,410 @@
 # Drone VLA Simulator
 
-Simulator drone sederhana berbasis TanStack Start, React Three Fiber, dan Three.js. Route home (`/`) menampilkan simulator fullscreen untuk menguji kontrol drone manual maupun output aksi dari model VLA.
+Simulator drone 3D untuk autonomous flight control testing berbasis **TanStack Start**, **React Three Fiber**, dan **Three.js**. Integrasi VLA memungkinkan drone bergerak sesuai prompt.
 
-## Menjalankan Project
+**Key Features:**
+
+- Full 3D simulator dengan multi-camera modes (FPV, 3rd person, fixed view)
+- VLA inference integration untuk autonomous control
+- Manual 4-axis control (vx, vy, vz, yaw) via sliders atau keyboard
+- Live telemetry & payload preview
+- Custom Roblox Studio maps support (.GLB format)
+
+---
+
+## Quick Start
+
+```bash
+# 1. Setup backend VLA API terlebih dahulu
+git clone https://github.com/Fth87/VLA_drone_backend_web_simulator-.git
+cd VLA_drone_backend_web_simulator-
+# Ikuti instruksi lengkap di repo backend
+
+# 2. Setup frontend (di folder project ini)
+cp .env.example .env
+# Edit .env, set 
+VITE_VLA_API_URL=dapat-dari-repo-backend
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+
+pnpm install
+pnpm dev
+# Buka http://localhost:3000
+```
+
+---
+
+## Prerequisites
+
+- **Node.js** ≥ 18.x
+- **pnpm** ≥ 8.x ([install](https://pnpm.io/installation))
+- **Backend running:** [VLA Drone Backend](https://github.com/Fth87/VLA_drone_backend_web_simulator-) 
+
+---
+
+## Setup Instructions
+
+### Step 1: Backend VLA API Setup
+
+Backend adalah **requirement** untuk simulator bekerja.
+
+```bash
+git clone https://github.com/Fth87/VLA_drone_backend_web_simulator-.git
+cd VLA_drone_backend_web_simulator-
+```
+
+Follow instruksi di README backend untuk setup environment. 
+
+### Step 2: Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```bash
+# Supabase (untuk auth)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+
+# VLA API Backend
+VITE_VLA_API_URL=http://localhost:8000
+```
+
+
+### Step 3: Frontend Installation & Run
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-## Environment Variables
+Frontend berjalan di `http://localhost:3000`
 
-### Supabase Setup
+---
 
-1. Create a project at [supabase.com](https://supabase.com) if you haven't already
-2. Go to **Settings → API** in your Supabase project dashboard
-3. Copy the keys and add them to `.env`:
+## Usage Guide
+
+### Controls
+
+| Key/Control | Action                     |
+| ----------- | -------------------------- |
+| `W` / `S`   | Move forward/backward (vz) |
+| `Q` / `E`   | Move up/down (vy)          |
+| `A` / `D`   | Rotate left/right (yaw)    |
+| `←` / `→`   | Strafe left/right (vx)     |
+| `1`         | FPV camera mode            |
+| `3`         | 3rd person camera          |
+| `4`         | Fixed corner view          |
+
+### Manual Control
+
+Use **Action Sliders** di Control Panel:
+
+- Vx (lateral): -1 (left) to 1 (right)
+- Vy (vertical): -1 (down) to 1 (up)
+- Vz (forward): -1 (back) to 1 (forward)
+- Yaw (rotation): -1 (ccw) to 1 (cw)
+
+### VLA Inference
+
+1. Type prompt di **Prompt** field (e.g., "go to red box")
+2. Click **Start Inference**
+3. Drone executes VLA model predictions
+4. View telemetry di HUD
+5. Download payload frame jika perlu
+
+---
+
+## Assets & Customization
+
+### Arena Maps (Custom Roblox Studio)
+
+Replace arena dengan custom map dari Roblox Studio.
+
+#### Folder Structure
+
+```
+public/
+├── drone model/
+│   └── drone_model.glb     # Drone 3D model
+└── maps/
+    └── maps_roblox.glb     # Arena/environment
+```
+
+#### How to Replace Map
+
+**1. Export dari Roblox Studio:**
+
+- Select model/landscape di Studio
+- Right-click → **Save to File As...** → Choose `.glb` format
+- Simpan sebagai `your-map.glb`
+
+**2. Add to Project:**
 
 ```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-public-key
+# Copy ke folder
+cp your-map.glb public/maps/
+
+# Update path di src/features/drone-sim/constants.ts
+export const MAP_MODEL_URL = '/maps/your-map.glb'
+
+# Adjust scale jika perlu
+export const MAP_FOOTPRINT_SIZE = 128  # Default = 128 units
 ```
 
-**Important:** The `VITE_SUPABASE_ANON_KEY` is your public/anonymous key — it's safe to expose in the browser. Never put the service role key in the client bundle.
+**3. Refresh browser**
 
-Build production:
+
+### Drone Model (Custom)
+
+Proses mirip dengan map:
 
 ```bash
-pnpm run build
+# Export drone dari Roblox → save ke public/drone model/
+cp your-drone.glb public/drone\ model/
+
+# Update path
+export const DRONE_MODEL_URL = '/drone%20model/your-drone.glb'  # %20 = space
 ```
 
-## Deploy ke Netlify
+---
 
-Project ini sudah disiapkan untuk Netlify dengan plugin resmi TanStack Start:
+## Configuration
 
-- `@netlify/vite-plugin-tanstack-start` di `vite.config.ts`
-- konfigurasi build di `netlify.toml`
+Semua tunable parameters di `src/features/drone-sim/constants.ts`:
 
-### Opsi 1: Deploy via Dashboard Netlify
-
-1. Push repository ke Git provider (GitHub/GitLab/Bitbucket).
-2. Di Netlify, pilih **Add new site** -> **Import an existing project**.
-3. Pilih repository ini.
-4. Pastikan Build settings:
-
-- Build command: `pnpm build`
-- Publish directory: kosongkan/default (ditangani plugin Netlify + TanStack Start)
-
-5. Deploy.
-
-### Opsi 2: Deploy via Netlify CLI
-
-```bash
-pnpm dlx netlify-cli deploy --build
-pnpm dlx netlify-cli deploy --build --prod
-```
-
-### Verifikasi Lokal Sebelum Deploy
-
-```bash
-pnpm build
-```
-
-Build sukses akan menghasilkan output server Netlify di:
-
-- `.netlify/v1/functions/server.mjs`
-
-## Best Practices (Three.js + TanStack Start di Netlify)
-
-- Pertahankan plugin resmi `@netlify/vite-plugin-tanstack-start` agar output SSR/handler Netlify tetap kompatibel.
-- Simpan secret/API key di Netlify Environment Variables, jangan di-hardcode ke source code.
-- Monitor ukuran bundle Three.js. Jika chunk utama makin besar, split scene/fitur berat dengan `lazy()` atau dynamic `import()` per route/fitur.
-- Kompres aset 3D (`.glb`) sebelum commit (contoh: Draco/mesh optimization) untuk menurunkan waktu load awal.
-- Simpan file model/texture di `public/` dengan nama path yang konsisten (hindari perubahan path saat runtime).
-- Jalankan `pnpm build` di lokal sebelum merge untuk memastikan output SSR + client tetap valid.
-
-## Fitur Utama
-
-- Arena fullscreen dengan ground tiled dan target kotak merah
-- Model drone dari `public/drone model/drone_model.glb`
-- Mode kamera:
-  - `1` = FPV
-  - `3` = 3rd person
-  - `4` = fixed corner view
-- Kontrol keyboard:
-  - `W / S` = maju / mundur
-  - `Q / E` = turun / naik
-  - `ArrowLeft / ArrowRight` = strafe kiri / kanan
-  - `A / D` = yaw kiri / kanan
-- Kontrol aksi VLA dengan `vx`, `vy`, `vz`, `yaw`
-- Prompt input lokal dan bridge prompt global
-
-## Integrasi Dengan Model VLA
-
-Simulator mengekspos bridge global sederhana:
-
-```js
-window.setDroneAction({
-  vx: 0.0,
-  vy: 0.1,
-  vz: 0.8,
-  yaw: -0.2,
-})
-
-window.setDronePrompt('go to the red box and hover')
-```
-
-Semua nilai aksi di-clamp ke rentang `-1..1`.
-
-## Tuning Gerakan
-
-Gain gerakan dipusatkan di:
-
-[src/features/drone-sim/constants.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/constants.ts)
+### Movement Response
 
 ```ts
 export const ACTION_GAIN = {
-  vx: 1.8,
-  vy: 1.4,
-  vz: 2.1,
-  yaw: 0.9,
+  vx: 1.8, // Lateral speed (left/right)
+  vy: 1.4, // Vertical speed (up/down)
+  vz: 2.1, // Forward speed
+  yaw: 0.9, // Rotation speed
 }
 ```
 
-Arti parameter:
+Increase untuk lebih responsive, decrease untuk lebih smooth.
 
-- `vx`: kecepatan strafe kiri/kanan
-- `vy`: kecepatan naik/turun
-- `vz`: kecepatan maju/mundur
-- `yaw`: kecepatan rotasi yaw
+### Flight Boundaries
 
-## Struktur Kode
+```ts
+export const DRONE_BOUNDS = {
+  x: 28, // Lateral limit
+  yMin: 0.35, // Floor
+  yMax: 12, // Ceiling
+  z: 28, // Depth limit
+}
+```
 
-Feature simulator dipisah ke folder:
+### Map Size
 
-- [src/features/drone-sim/types.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/types.ts)
-  - Tipe domain simulator dan bridge global
-- [src/features/drone-sim/constants.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/constants.ts)
-  - Konstanta domain seperti bounds, gain, dan initial state
-- [src/features/drone-sim/utils.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/utils.ts)
-  - Helper umum seperti clamp dan normalisasi heading
-- [src/features/drone-sim/hooks/useDroneActionBridge.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/hooks/useDroneActionBridge.ts)
-  - Menggabungkan input keyboard dan model VLA ke action final
-- [src/features/drone-sim/hooks/useGroundTexture.ts](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/hooks/useGroundTexture.ts)
-  - Texture procedural untuk ground
-- [src/features/drone-sim/components/Ground.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/Ground.tsx)
-  - Mesh ground arena
-- [src/features/drone-sim/components/DroneVisual.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/DroneVisual.tsx)
-  - Render dan normalisasi model drone
-- [src/features/drone-sim/components/DroneRig.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/DroneRig.tsx)
-  - Movement, camera follow, reset, target, dan telemetry
-- [src/features/drone-sim/components/SimulatorScene.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/SimulatorScene.tsx)
-  - Scene Three.js / R3F utama
-- [src/features/drone-sim/components/ActionSlider.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/ActionSlider.tsx)
-  - Slider UI generik untuk aksi
-- [src/features/drone-sim/components/ViewModeButton.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/ViewModeButton.tsx)
-  - Tombol mode kamera
-- [src/features/drone-sim/components/ControlPanel.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/ControlPanel.tsx)
-  - Panel input aksi, prompt, kamera, dan reset
-- [src/features/drone-sim/components/StatusHud.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/features/drone-sim/components/StatusHud.tsx)
-  - HUD bawah untuk posisi, heading, action, dan status prompt
-- [src/components/RobloxModelViewer.tsx](/mnt/data/1%20FP%20KCV%20/web/drone_vla_3d/src/components/RobloxModelViewer.tsx)
-  - Container tipis yang merangkai feature simulator
+```ts
+export const MAP_FOOTPRINT_SIZE = 128 // Width/depth in units
+```
 
-## Prinsip Refactor
+Increase jika map terasa terlalu kecil, decrease jika terlalu besar.
 
-Refactor ini menjaga:
+### VLA Inference
 
-- Tampilan tetap sama
-- Perilaku simulator tetap sama
-- Separation of concern lebih jelas
-- Domain logic dipisah dari presentational UI
-- Tidak overengineering: belum menambah state manager atau abstraction yang belum dibutuhkan
+```ts
+export const VLA_REQUEST_TIMEOUT_MS = 10_000 // 10 seconds
+export const VLA_INFERENCE_INTERVAL_MS = 100 // Loop interval
+export const VLA_IMAGE_SIZE = 224 // Capture resolution
+export const VLA_PROMPT_MAX_LENGTH = 160 // Max chars
+```
+
+### Scene
+
+```ts
+export const SCENE_BACKGROUND_COLOR = '#8ecdf7' // Sky color
+export const SCENE_FOG_COLOR = '#b6def6' // Fog color
+export const MAP_MODEL_URL = '/maps/maps_roblox.glb' // Map file
+export const DRONE_MODEL_URL = '/drone%20model/drone_model.glb'
+```
+
+---
+
+## VLA Integration
+
+### API Specification
+
+**Endpoint:** `POST /infer`
+
+**Request (multipart/form-data):**
+
+| Field         | Type          | Required | Description                  |
+| ------------- | ------------- | -------- | ---------------------------- |
+| `image_input` | Binary (JPEG) | ✅       | 224x224 FPV frame            |
+| `task_input`  | String        | ✅       | Natural language prompt      |
+| `state_input` | String        | ❌       | Optional drone state context |
+
+**Response (JSON):**
+
+```json
+{
+  "success": true,
+  "first_action": [0.2, 0.1, 0.8, -0.3],
+  "trajectory": [[...], [...]] or null,
+  "inference_time_ms": 245,
+  "error": null
+}
+```
+
+`first_action` format: `[vx, vy, vz, yaw]` dengan range -1..1
+
+---
+
+## Features
+
+### Core
+
+**Fullscreen 3D Simulator**
+
+- Real-time rendering dengan shadows
+- Three.js + React Three Fiber
+
+**Multi-Camera Modes**
+
+- FPV (first-person)
+- 3rd person follow
+- Fixed corner view
+
+**Control Systems**
+
+- Keyboard: W/S/Q/E/A/D + arrows
+- Action sliders untuk 4-axis
+- VLA inference integration
+
+**Live Telemetry HUD**
+
+- Drone position (X, Y, Z)
+- Heading (Yaw)
+- Current action values
+- Inference status
+
+**VLA Model Integration**
+
+- Natural language → drone commands
+- Real-time inference loop
+- Payload frame preview & download
+
+**Custom Assets**
+
+- Import Roblox Studio maps (.GLB)
+- Custom drone models
+- Auto-scaling & centering
+
+### Advanced
+
+- TanStack Start SSR ready
+- Netlify deployment optimized
+- Supabase auth integration
+- Performance monitoring (metrics in HUD)
+
+---
+
+## Troubleshooting
+
+### General
+
+| Issue                    | Solution                                                                                           |
+| ------------------------ | -------------------------------------------------------------------------------------------------- |
+| **"API unreachable"**    | Ensure backend running on `VITE_VLA_API_URL`. Test with `curl http://localhost:8000/health`        |
+| **Drone not visible**    | Check `public/drone model/drone_model.glb` exists. Refresh browser (Ctrl+Shift+R)                  |
+| **Map not loading**      | Verify path in `constants.ts`. Check file exists in `public/maps/`. Check browser console for 404s |
+| **Keyboard not working** | Click canvas first to focus. Check console for errors                                              |
+
+### Map/Drone Issues
+
+| Issue                        | Solution                                                                   |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| **Map ter-scale besar**      | Decrease `MAP_FOOTPRINT_SIZE` atau increase size di Roblox sebelum export  |
+| **Map ter-scale kecil**      | Increase `MAP_FOOTPRINT_SIZE`                                              |
+| **Drone crash ke ground**    | Increase `DRONE_BOUNDS.yMin` atau check model origin di Roblox             |
+| **Map .glb file besar/slow** | Use `gltf-transform compress` atau remove details di Roblox sebelum export |
+
+### Inference
+
+| Issue                                 | Solution                                                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Inference tidak jalan**             | Pastikan prompt tidak kosong (min 1 char). Check status badge untuk error. Check backend response di network tab    |
+| **Action set tapi drone tidak gerak** | Verify action values di HUD. Check sliders tidak disabled (grayed out). Ensure drone model Y-offset valid           |
+| **Latency lambat**                    | Monitor `inference_time_ms` di HUD. Reduce `VLA_REQUEST_TIMEOUT_MS` jika backend lebih cepat. Check network latency |
+
+---
+
+## Project Architecture
+
+### Folder Structure
+
+```
+src/features/drone-sim/
+├── constants.ts              # Configuration (EDIT THESE)
+├── types.ts                  # Type definitions
+├── schema.ts                 # Validation logic
+├── utils/
+│   ├── capture-frame.ts     # Canvas → JPEG capture
+│   └── inference-state.ts   # State builders
+├── services/
+│   └── vla-api.ts           # Backend API client
+├── hooks/
+│   ├── useDroneActionBridge.ts    # Merge keyboard + VLA
+│   └── useVlaInference.ts         # Inference loop
+└── components/
+    ├── controls/
+    │   ├── ControlPanel.tsx       # Main UI panel
+    │   ├── ActionSlider.tsx       # 4-axis sliders
+    │   └── ViewModeButton.tsx     # Camera switcher
+    ├── overlay/
+    │   ├── StatusHud.tsx          # Telemetry display
+    │   ├── SettingsPanel.tsx      # Settings UI
+    │   └── OverlayToolbar.tsx     # Toggle buttons
+    └── scene/
+        ├── SimulatorScene.tsx     # R3F Canvas + lighting
+        ├── EnvironmentMap.tsx     # Map loader → AUTO-SCALE
+        ├── DroneVisual.tsx        # Drone loader → AUTO-SCALE
+        ├── DroneRig.tsx           # Movement + camera + telemetry
+        └── SceneEnvironment.tsx   # Tone mapping + effects
+```
+
+### Data Flow
+
+```
+useVlaInference Hook
+├─ start() → validate prompt → health check
+├─ runSingleInference() loop every VLA_INFERENCE_INTERVAL_MS
+│  ├─ captureCanvasFrame() → 224x224 JPEG
+│  ├─ POST /infer (multipart) → backend
+│  ├─ Parse response → first_action array
+│  └─ onAction(newDroneAction)
+├─ payload preview → setLatestPayloadUrl()
+└─ state management → InferenceState
+```
+
+Real-time control feedback cycle melewati React state, canvas rendering, dan telemetry sync.
+
+### Loading Flow (Maps & Drones)
+
+```
+EnvironmentMap.tsx
+├─ useLoader(GLTFLoader, MAP_MODEL_URL)
+├─ Calculate bounding box
+├─ Auto-center & scale ke MAP_FOOTPRINT_SIZE
+├─ Setup shadows (Baseplate exclude cast)
+└─ Render via R3F primitive
+
+DroneVisual.tsx (same, but scale differently)
+```
+
+
+---
+
+## Resources
+
+- [TanStack Start Docs](https://tanstack.com/start/)
+- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/)
+- [Three.js Docs](https://threejs.org/docs/)
+- [Roblox File Formats](https://developer.roblox.com/)
